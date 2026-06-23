@@ -1,0 +1,123 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local Give = ReplicatedStorage.Donate_Money_Remotes.Give
+local Toggle = false
+
+-- GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = game:GetService("CoreGui")
+ScreenGui.ResetOnSpawn = false
+
+local Button = Instance.new("TextButton")
+Button.Size = UDim2.new(0,220,0,55)
+Button.Position = UDim2.new(0.5,-110,0.5,-27)
+Button.BackgroundColor3 = Color3.fromRGB(0,0,0)
+Button.Text = "Spawner : OFF"
+Button.TextScaled = true
+Button.Font = Enum.Font.GothamBold
+Button.Parent = ScreenGui
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0,12)
+Corner.Parent = Button
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Thickness = 3
+Stroke.Color = Color3.new(1,1,1)
+Stroke.Parent = Button
+
+-- Rainbow text
+task.spawn(function()
+	local hue = 0
+	while true do
+		Button.TextColor3 = Color3.fromHSV(hue,1,1)
+		hue += 0.005
+		if hue >= 1 then
+			hue = 0
+		end
+		task.wait()
+	end
+end)
+
+-- Squishy animation
+local normalSize = Button.Size
+local squishSize = UDim2.new(
+	normalSize.X.Scale,
+	normalSize.X.Offset - 15,
+	normalSize.Y.Scale,
+	normalSize.Y.Offset - 5
+)
+
+Button.MouseButton1Down:Connect(function()
+	TweenService:Create(
+		Button,
+		TweenInfo.new(0.08,Enum.EasingStyle.Quad),
+		{Size = squishSize}
+	):Play()
+end)
+
+Button.MouseButton1Up:Connect(function()
+	TweenService:Create(
+		Button,
+		TweenInfo.new(0.08,Enum.EasingStyle.Quad),
+		{Size = normalSize}
+	):Play()
+end)
+
+-- Draggable (PC + Mobile)
+local dragging = false
+local dragInput, dragStart, startPos
+
+Button.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = Button.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+Button.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement
+	or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		Button.Position = UDim2.new(
+			startPos.X.Scale,
+			startPos.X.Offset + delta.X,
+			startPos.Y.Scale,
+			startPos.Y.Offset + delta.Y
+		)
+	end
+end)
+
+-- Toggle
+Button.MouseButton1Click:Connect(function()
+	Toggle = not Toggle
+
+	Button.Text = Toggle and "Spawner : ON" or "Spawner : OFF"
+
+	if Toggle then
+		task.spawn(function()
+			while Toggle do
+				Give:FireServer(5000)
+				task.wait(0.001)
+			end
+		end)
+	end
+end)
+
+-- You can set any amount from Donate Coins
