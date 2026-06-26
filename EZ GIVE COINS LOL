@@ -1,123 +1,103 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 
-local Give = ReplicatedStorage.Donate_Money_Remotes.Give
-local Toggle = false
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- GUI
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.ResetOnSpawn = false
+local Give = ReplicatedStorage:WaitForChild("Donate_Money_Remotes"):WaitForChild("Give")
 
-local Button = Instance.new("TextButton")
-Button.Size = UDim2.new(0,220,0,55)
-Button.Position = UDim2.new(0.5,-110,0.5,-27)
-Button.BackgroundColor3 = Color3.fromRGB(0,0,0)
-Button.Text = "Spawner : OFF"
-Button.TextScaled = true
-Button.Font = Enum.Font.GothamBold
-Button.Parent = ScreenGui
+local Amount = 5000
+local Running = false
 
-local Corner = Instance.new("UICorner")
-Corner.CornerRadius = UDim.new(0,12)
-Corner.Parent = Button
+local Window = Rayfield:CreateWindow({
+    Name = "Money Spawner",
+    LoadingTitle = "Please Wait...",
+    LoadingSubtitle = "I WANNA RUN AWAY TOWER SCRIPT ARE LOADING...",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "MoneySpawner",
+        FileName = "Settings"
+    },
+    Discord = {
+        Enabled = false
+    },
+    KeySystem = false
+})
 
-local Stroke = Instance.new("UIStroke")
-Stroke.Thickness = 3
-Stroke.Color = Color3.new(1,1,1)
-Stroke.Parent = Button
+-- Main Tab
+local Main = Window:CreateTab("Main", 4483362458)
 
--- Rainbow text
-task.spawn(function()
-	local hue = 0
-	while true do
-		Button.TextColor3 = Color3.fromHSV(hue,1,1)
-		hue += 0.005
-		if hue >= 1 then
-			hue = 0
-		end
-		task.wait()
-	end
-end)
+-- Credits Tab
+local Credits = Window:CreateTab("Credits", 4483362458)
 
--- Squishy animation
-local normalSize = Button.Size
-local squishSize = UDim2.new(
-	normalSize.X.Scale,
-	normalSize.X.Offset - 15,
-	normalSize.Y.Scale,
-	normalSize.Y.Offset - 5
-)
+-- Main Tab
+Main:CreateSlider({
+    Name = "Select Amount For Coins",
+    Range = {1, 5000},
+    Increment = 1,
+    Suffix = "$",
+    CurrentValue = Amount,
+    Callback = function(Value)
+        Amount = Value
+    end
+})
 
-Button.MouseButton1Down:Connect(function()
-	TweenService:Create(
-		Button,
-		TweenInfo.new(0.08,Enum.EasingStyle.Quad),
-		{Size = squishSize}
-	):Play()
-end)
+Main:CreateButton({
+    Name = "Give Once",
+    Callback = function()
+        Give:FireServer(Amount)
 
-Button.MouseButton1Up:Connect(function()
-	TweenService:Create(
-		Button,
-		TweenInfo.new(0.08,Enum.EasingStyle.Quad),
-		{Size = normalSize}
-	):Play()
-end)
+        Rayfield:Notify({
+            Title = "Donation Coins",
+            Content = "Sent $" .. Amount,
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
+})
 
--- Draggable (PC + Mobile)
-local dragging = false
-local dragInput, dragStart, startPos
+Main:CreateToggle({
+    Name = "Auto Give",
+    CurrentValue = false,
+    Callback = function(Value)
+        Running = Value
 
-Button.InputBegan:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton1
-	or input.UserInputType == Enum.UserInputType.Touch then
-		dragging = true
-		dragStart = input.Position
-		startPos = Button.Position
+        if Running then
+            task.spawn(function()
+                while Running do
+                    Give:FireServer(Amount)
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
 
-		input.Changed:Connect(function()
-			if input.UserInputState == Enum.UserInputState.End then
-				dragging = false
-			end
-		end)
-	end
-end)
+Main:CreateParagraph({
+    Title = "Info",
+    Content = "This Script Was Made to Let everyone from a Server Collect it and They will be Rich! :D"
+})
 
-Button.InputChanged:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseMovement
-	or input.UserInputType == Enum.UserInputType.Touch then
-		dragInput = input
-	end
-end)
+-- Credits Tab
+Credits:CreateParagraph({
+    Title = "Owner 👑",
+    Content = "BonkChen"
+})
 
-UserInputService.InputChanged:Connect(function(input)
-	if input == dragInput and dragging then
-		local delta = input.Position - dragStart
-		Button.Position = UDim2.new(
-			startPos.X.Scale,
-			startPos.X.Offset + delta.X,
-			startPos.Y.Scale,
-			startPos.Y.Offset + delta.Y
-		)
-	end
-end)
+Credits:CreateParagraph({
+    Title = "Developer ⭐",
+    Content = "ACTINGLIKESTUDING"
+})
 
--- Toggle
-Button.MouseButton1Click:Connect(function()
-	Toggle = not Toggle
+Credits:CreateParagraph({
+    Title = "UI Library",
+    Content = "Rayfield"
+})
 
-	Button.Text = Toggle and "Spawner : ON" or "Spawner : OFF"
+Credits:CreateParagraph({
+    Title = "Thanks ❤️",
+    Content = "Thank you for using our Money Giver script! Have fun! :D"
+})
 
-	if Toggle then
-		task.spawn(function()
-			while Toggle do
-				Give:FireServer(5000)
-				task.wait(0.001)
-			end
-		end)
-	end
-end)
-
--- You can set any amount from Donate Coins
+Credits:CreateParagraph({
+    Title = "Information",
+    Content = "This was NOT Made by AI, We just made it and We custom it for More Modern. So yeah..."
+})
