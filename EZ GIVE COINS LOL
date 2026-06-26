@@ -13,7 +13,7 @@ local Window = Rayfield:CreateWindow({
     LoadingSubtitle = "I WANNA RUN AWAY TOWER SCRIPT ARE LOADING...",
     ConfigurationSaving = {
         Enabled = true,
-        FolderName = "MoneySpawner",
+        FolderName = "Donation Giver",
         FileName = "Settings"
     },
     Discord = {
@@ -94,7 +94,7 @@ Credits:CreateParagraph({
 
 Credits:CreateParagraph({
     Title = "Thanks ❤️",
-    Content = "Thank you for using our Money Giver script! Have fun! :D"
+    Content = "Thank you for using our Donation Giver script! Have fun! :D"
 })
 
 Credits:CreateParagraph({
